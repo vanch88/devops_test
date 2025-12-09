@@ -1,0 +1,35 @@
+# Data directories - ignore all contents but keep directory structure
+data/**/*
+!data/**/.gitkeep
+
+# Logs directories - ignore all contents but keep directory structure
+logs/**/*
+!logs/**/.gitkeep
+
+# Docker
+.docker/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Composer
+app/vendor/
+app/composer.lock
+
+# Symfony
+app/var/
+app/.phpunit.result.cache
+

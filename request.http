@@ -1,0 +1,401 @@
+### Variables
+@baseUrl = http://localhost:8080
+@apiUrl = {{baseUrl}}/api
+@token = 
+
+###############################################
+# AUTH API
+###############################################
+
+### Register new user - Success
+# @name register
+POST {{apiUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "name": "John Doe",
+  "email": "john@example.com",
+  "password": "password123"
+}
+
+### Register - Validation: Empty name
+POST {{apiUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "name": "",
+  "email": "test@example.com",
+  "password": "password123"
+}
+
+### Register - Validation: Missing name
+POST {{apiUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "email": "test@example.com",
+  "password": "password123"
+}
+
+### Register - Validation: Invalid email
+POST {{apiUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "name": "Test User",
+  "email": "invalid-email",
+  "password": "password123"
+}
+
+### Register - Validation: Password too short
+POST {{apiUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "name": "Test User",
+  "email": "test@example.com",
+  "password": "12345"
+}
+
+### Register - Duplicate email (409)
+POST {{apiUrl}}/auth/register
+Content-Type: application/json
+
+{
+  "name": "Another User",
+  "email": "john@example.com",
+  "password": "password123"
+}
+
+### Login - Success
+# @name login
+POST {{apiUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "john@example.com",
+  "password": "password123"
+}
+
+### Login - Validation: Missing email
+POST {{apiUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "password": "password123"
+}
+
+### Login - Validation: Missing password
+POST {{apiUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "john@example.com"
+}
+
+### Login - Invalid credentials (401)
+POST {{apiUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "john@example.com",
+  "password": "wrongpassword"
+}
+
+### Login - Non-existent user (401)
+POST {{apiUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "nonexistent@example.com",
+  "password": "password123"
+}
+
+###############################################
+# USERS API (requires authentication)
+###############################################
+
+### Get all users
+GET {{apiUrl}}/users
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+### Get user by ID
+GET {{apiUrl}}/users/1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+### Get non-existent user (404)
+GET {{apiUrl}}/users/999
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+### Get current user profile
+GET {{apiUrl}}/users/me
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+### Update current user profile - Success (PUT)
+PUT {{apiUrl}}/users/me
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "John Updated",
+  "email": "john.updated@example.com"
+}
+
+### Update current user profile - Success (PATCH) - Only name
+PATCH {{apiUrl}}/users/me
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "John Patched"
+}
+
+### Update current user profile - Success (PATCH) - Only email
+PATCH {{apiUrl}}/users/me
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "email": "john.patched@example.com"
+}
+
+### Update current user profile - Validation: Empty body (400)
+PATCH {{apiUrl}}/users/me
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+}
+
+### Update current user profile - Validation: Invalid email
+PATCH {{apiUrl}}/users/me
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "email": "invalid-email"
+}
+
+### Update current user profile - Validation: Name too long
+PATCH {{apiUrl}}/users/me
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "This is a very long name that exceeds the maximum length of 100 characters allowed for this field and should trigger a validation error"
+}
+
+### Update current user profile - Duplicate email (409)
+PUT {{apiUrl}}/users/me
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "name": "John",
+  "email": "jane@example.com"
+}
+
+### Access without token (401)
+GET {{apiUrl}}/users
+Content-Type: application/json
+
+### Access with invalid token (401)
+GET {{apiUrl}}/users
+Authorization: Bearer invalid_token_here
+Content-Type: application/json
+
+###############################################
+# POSTS API (requires authentication)
+###############################################
+
+### Get all posts
+GET {{apiUrl}}/posts
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+### Get post by ID
+GET {{apiUrl}}/posts/1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+### Get non-existent post (404)
+GET {{apiUrl}}/posts/999
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+### Create post - Success
+POST {{apiUrl}}/posts
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "title": "My First Post",
+  "body": "This is the content of my first post"
+}
+
+### Create post - Validation: Empty title
+POST {{apiUrl}}/posts
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "title": "",
+  "body": "Post body"
+}
+
+### Create post - Validation: Missing title
+POST {{apiUrl}}/posts
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "body": "Post body"
+}
+
+### Create post - Validation: Empty body
+POST {{apiUrl}}/posts
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "title": "Post Title",
+  "body": ""
+}
+
+### Create post - Validation: Missing body
+POST {{apiUrl}}/posts
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "title": "Post Title"
+}
+
+### Create post - Validation: Title too long
+POST {{apiUrl}}/posts
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "title": "This is a very long title that exceeds the maximum length of 200 characters allowed for this field and should trigger a validation error when the title is too long for the database and even more text to make it longer than 200 characters exactly",
+  "body": "Post body"
+}
+
+### Update post - Success (PUT)
+PUT {{apiUrl}}/posts/1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "title": "Updated Post Title",
+  "body": "Updated post body content"
+}
+
+### Update post - Success (PATCH) - Only title
+PATCH {{apiUrl}}/posts/1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "title": "Patched Title"
+}
+
+### Update post - Success (PATCH) - Only body
+PATCH {{apiUrl}}/posts/1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "body": "Patched body content"
+}
+
+### Update post - Validation: Empty body (400)
+PATCH {{apiUrl}}/posts/1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+}
+
+### Update post - Validation: Title too long
+PATCH {{apiUrl}}/posts/1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "title": "This is a very long title that exceeds the maximum length of 200 characters allowed for this field and should trigger a validation error when the title is too long for the database and even more text to make it longer than 200 characters exactly"
+}
+
+### Update post - Validation: Empty title
+PATCH {{apiUrl}}/posts/1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "title": ""
+}
+
+### Update post - Validation: Empty body
+PATCH {{apiUrl}}/posts/1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "body": ""
+}
+
+### Update post - Not owner (403)
+PUT {{apiUrl}}/posts/1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "title": "Hacked Post",
+  "body": "Trying to update someone else's post"
+}
+
+### Delete post - Success
+DELETE {{apiUrl}}/posts/1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+### Delete post - Not owner (403)
+DELETE {{apiUrl}}/posts/1
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+### Delete non-existent post (404)
+DELETE {{apiUrl}}/posts/999
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+### Update non-existent post (404)
+PUT {{apiUrl}}/posts/999
+Authorization: Bearer {{token}}
+Content-Type: application/json
+
+{
+  "title": "Test",
+  "body": "Test body"
+}
+
+### Create post without token (401)
+POST {{apiUrl}}/posts
+Content-Type: application/json
+
+{
+  "title": "Post Title",
+  "body": "Post body"
+}
+
+###############################################
+# Root endpoint
+###############################################
+
+### Get API info
+GET {{baseUrl}}/
+Content-Type: application/json

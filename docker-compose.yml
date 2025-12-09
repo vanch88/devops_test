@@ -1,0 +1,94 @@
+services:
+  php:
+    build:
+      context: .
+      dockerfile: ./php/Dockerfile
+    container_name: devops_php
+    volumes:
+      - ./app:/var/www/html
+      - ./logs/php:/var/log/php-fpm
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
+
+  nginx:
+    build:
+      context: .
+      dockerfile: ./nginx/Dockerfile
+    container_name: devops_nginx
+    ports:
+      - "${WEB_PORT}:80"
+    volumes:
+      - ./app:/var/www/html
+      - ./nginx/conf.d:/etc/nginx/conf.d
+      - ./logs/nginx:/var/log/nginx
+    env_file:
+      - .env
+    depends_on:
+      - php
+
+  db:
+    build:
+      context: .
+      dockerfile: ./mariadb/Dockerfile
+    container_name: devops_db
+    ports:
+      - "${DB_PORT}:3306"
+    volumes:
+      - ./data/mariadb:/var/lib/mysql
+      - ./logs/mariadb:/var/log/mysql
+    env_file:
+      - .env
+    healthcheck:
+      test: ["CMD-SHELL", "mariadb-admin ping -h 127.0.0.1 -u $$MYSQL_USER --password=$$MYSQL_PASSWORD"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+
+  prometheus:
+    build:
+      context: .
+      dockerfile: ./prometheus/Dockerfile
+    container_name: devops_prometheus
+    user: "root"
+    ports:
+      - "${PROMETHEUS_PORT}:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./data/prometheus:/prometheus
+      - ./logs/prometheus:/var/log/prometheus
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--storage.tsdb.retention.time=15d'
+      - '--web.console.libraries=/usr/share/prometheus/console_libraries'
+      - '--web.console.templates=/usr/share/prometheus/consoles'
+    depends_on:
+      - nginx
+
+  grafana:
+    build:
+      context: .
+      dockerfile: ./grafana/Dockerfile
+    container_name: devops_grafana
+    user: "root"
+    ports:
+      - "${GRAFANA_PORT}:3000"
+    volumes:
+      - ./data/grafana:/var/lib/grafana
+      - ./grafana/provisioning:/etc/grafana/provisioning
+      - ./logs/grafana:/var/log/grafana
+    env_file:
+      - .env
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_USERS_ALLOW_SIGN_UP=false
+      - GF_PATHS_DATA=/var/lib/grafana
+    depends_on:
+      - prometheus
+
+volumes: {}
+
